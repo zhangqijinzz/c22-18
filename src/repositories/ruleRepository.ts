@@ -1,5 +1,4 @@
-import type { BusinessRule, RuleField, RuleProject, RuleVersion, WorkspaceDocument } from '../models/ruleModel';
-import { defaultSample } from '../domain/conditionEvaluator';
+import type { BusinessRule, RuleField, RuleProject, RuleVersion, SampleInput, ScalarValue, WorkspaceDocument } from '../models/ruleModel';
 import { ProjectStorageService } from '../services/projectStorageService';
 
 export class RuleRepository {
@@ -35,17 +34,41 @@ function decodeProject(value: unknown): RuleProject | null {
   const versionsValue = Array.isArray(value.versions) ? value.versions : [];
   const versions = versionsValue.filter(isRuleVersion);
   if (versions.length !== versionsValue.length) return null;
+  // 恢复旧数据时与字段增删走同一套规则：只保留当前字段且类型正确的值，
+  // 缺失或类型不符一律按未填处理，绝不替用户补成最小值/首选项/否。
   const project: RuleProject = {
     id: value.id,
     title: value.title,
     fields,
     rules,
-    sampleInputs: isRecord(value.sampleInputs) ? value.sampleInputs as RuleProject['sampleInputs'] : defaultSample(fields),
-    versions,
+    sampleInputs: sanitizeSampleInputs(fields, isRecord(value.sampleInputs) ? value.sampleInputs : {}),
+    versions: versions.map((version) => ({ ...version, sampleInputs: sanitizeSampleInputs(version.fields, version.sampleInputs) })),
     updatedAt: value.updatedAt,
   };
   if (typeof value.frozenVersionId === 'string') project.frozenVersionId = value.frozenVersionId;
   return project;
+}
+
+/**
+ * 把持久化的样例输入对齐到字段集合：
+ * - 已删除字段的遗留值丢弃；
+ * - 缺失字段显式记为未填（''）；
+ * - JS 类型与字段类型不符的值无法成为合法输入，按未填处理；
+ * - 类型正确但越界/不在枚举内的值保留原样，交给求值标成无效输入。
+ */
+export function sanitizeSampleInputs(fields: RuleField[], raw: Record<string, unknown>): SampleInput {
+  const next: SampleInput = {};
+  for (const field of fields) {
+    const candidate = raw[field.id];
+    next[field.id] = isValueMatchingType(field, candidate) ? (candidate as ScalarValue) : '';
+  }
+  return next;
+}
+
+function isValueMatchingType(field: RuleField, value: unknown): boolean {
+  if (field.type === 'number') return typeof value === 'number' && Number.isFinite(value);
+  if (field.type === 'boolean') return typeof value === 'boolean';
+  return typeof value === 'string' && value !== '';
 }
 
 function isRuleField(value: unknown): value is RuleField {

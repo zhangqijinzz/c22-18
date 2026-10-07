@@ -97,11 +97,22 @@ export interface RuleAnalysis {
   truncated: boolean;
 }
 
+export type SampleFieldIssueKind = 'missing' | 'invalid';
+
+export interface SampleFieldIssue {
+  fieldId: string;
+  kind: SampleFieldIssueKind;
+  message: string;
+}
+
 export interface SampleEvaluation {
   valid: boolean;
   errors: string[];
+  issues: SampleFieldIssue[];
   matchedRules: BusinessRule[];
   winner?: BusinessRule;
+  missingFieldIds: string[];
+  invalidFieldIds: string[];
 }
 
 export interface DomainChecker {

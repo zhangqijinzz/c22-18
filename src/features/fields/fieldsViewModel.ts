@@ -1,5 +1,5 @@
-import { defaultSample } from '../../domain/conditionEvaluator';
-import type { FieldType, RuleField } from '../../models/ruleModel';
+import { syncSampleInputs } from '../../domain/conditionEvaluator';
+import type { FieldType, RuleField, SampleInput } from '../../models/ruleModel';
 import type { WorkspacePort } from '../../viewmodels/workspacePort';
 
 export class FieldsViewModel {
@@ -14,11 +14,14 @@ export class FieldsViewModel {
       : type === 'enum'
         ? { id: makeId('field'), name: `枚举字段 ${ordinal}`, type, enumValues: ['选项 A', '选项 B'] }
         : { id: makeId('field'), name: `布尔字段 ${ordinal}`, type };
+    const nextFields = [...project.fields, field];
+    // 新字段在样例中保持“未填”，不替用户决定最小值/首选项/否。
+    const sampleInputs = syncSampleInputs(nextFields, project.sampleInputs);
     this.workspace.commitProject({
       ...project,
-      fields: [...project.fields, field],
-      sampleInputs: { ...defaultSample(project.fields), ...project.sampleInputs, ...defaultSample([field]) },
-    }, `已添加字段“${field.name}”`);
+      fields: nextFields,
+      sampleInputs,
+    }, `已添加字段“${field.name}”，请在样例试验区填写或显式补全`);
   }
 
   updateField(fieldId: string, updates: Partial<RuleField>): void {
@@ -37,9 +40,9 @@ export class FieldsViewModel {
       this.workspace.updateView({ notice: `无法删除“${field.name}”：仍被 ${references.join('、')} 引用。请先移除这些规则条件。` });
       return false;
     }
-    const sampleInputs = { ...project.sampleInputs };
-    delete sampleInputs[fieldId];
-    this.workspace.commitProject({ ...project, fields: project.fields.filter((candidate) => candidate.id !== fieldId), sampleInputs }, `已删除字段“${field.name}”`);
+    const nextFields = project.fields.filter((candidate) => candidate.id !== fieldId);
+    const sampleInputs: SampleInput = syncSampleInputs(nextFields, project.sampleInputs);
+    this.workspace.commitProject({ ...project, fields: nextFields, sampleInputs }, `已删除字段“${field.name}”`, { recheck: true, autoFilledFieldIds: [] });
     return true;
   }
 
