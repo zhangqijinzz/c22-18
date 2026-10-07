@@ -3,7 +3,6 @@ import type {
   ConditionGroup,
   PredicateCondition,
   RuleCondition,
-  RuleField,
   RuleProject,
   SampleEvaluation,
   SampleInput,
@@ -41,9 +40,11 @@ export function matchesRule(rule: BusinessRule, values: SampleInput): boolean {
 
 export function evaluateSample(project: RuleProject, values: SampleInput): SampleEvaluation {
   const errors: string[] = [];
+  const missingFieldIds: string[] = [];
   for (const field of project.fields) {
     const value = values[field.id];
     if (value === undefined || value === '') {
+      missingFieldIds.push(field.id);
       errors.push(`请填写“${field.name}”`);
       continue;
     }
@@ -56,18 +57,11 @@ export function evaluateSample(project: RuleProject, values: SampleInput): Sampl
     }
     if (field.type === 'boolean' && typeof value !== 'boolean') errors.push(`“${field.name}”需要选择是或否`);
   }
-  if (errors.length) return { valid: false, errors, matchedRules: [] };
+  if (errors.length) return { valid: false, errors, missingFieldIds, matchedRules: [] };
   const matchedRules = project.rules
     .filter((rule) => matchesRule(rule, values))
     .sort((a, b) => b.priority - a.priority || project.rules.indexOf(a) - project.rules.indexOf(b));
-  return { valid: true, errors: [], matchedRules, winner: matchedRules[0] };
-}
-
-export function defaultSample(fields: RuleField[]): SampleInput {
-  return Object.fromEntries(fields.map((field) => [
-    field.id,
-    field.type === 'number' ? field.min ?? 0 : field.type === 'enum' ? field.enumValues?.[0] ?? '' : false,
-  ]));
+  return { valid: true, errors: [], missingFieldIds: [], matchedRules, winner: matchedRules[0] };
 }
 
 export function group(operator: ConditionGroup['operator'], ...conditions: RuleCondition[]): ConditionGroup {

@@ -24,22 +24,25 @@ export function createDemoWorkspace(): WorkspaceDocument {
       { kind: 'predicate', fieldId: 'cart-total', operator: 'gt', value: 5000 },
     ] }),
   ];
+  const sampleInputs = { 'member-level': '金卡会员', 'cart-total': 1200, 'coupon-active': true };
   const project: RuleProject = {
     id: 'project-membership', title: '会员权益与折扣策略', fields, rules,
-    sampleInputs: { 'member-level': '金卡会员', 'cart-total': 1200, 'coupon-active': true },
+    sampleInputs,
+    sampleInputSources: { 'member-level': 'user', 'cart-total': 'user', 'coupon-active': 'user' },
     versions: [], updatedAt: Date.now(),
   };
   return { schemaVersion: 1, projects: [project], activeProjectId: project.id };
 }
 
 export function createBlankProject(ordinal: number): RuleProject {
-  return { id: makeId('project'), title: `未命名规则项目 ${ordinal}`, fields: [], rules: [], sampleInputs: {}, versions: [], updatedAt: Date.now() };
+  return { id: makeId('project'), title: `未命名规则项目 ${ordinal}`, fields: [], rules: [], sampleInputs: {}, sampleInputSources: {}, versions: [], updatedAt: Date.now() };
 }
 
 export function createVersionSnapshot(project: RuleProject, name: string, frozen: boolean): RuleVersion {
   return {
     id: makeId('version'), name, savedAt: Date.now(), frozen,
     fields: cloneData(project.fields), rules: cloneData(project.rules), sampleInputs: cloneData(project.sampleInputs),
+    sampleInputSources: cloneData(project.sampleInputSources),
   };
 }
 

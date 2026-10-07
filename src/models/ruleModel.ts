@@ -39,6 +39,9 @@ export interface BusinessRule {
 }
 
 export type SampleInput = Record<string, ScalarValue | ''>;
+/** 样例值的来源：用户手动填写，或经“补全未填写”动作由系统填入的默认值。 */
+export type SampleInputSource = 'user' | 'auto';
+export type SampleInputSources = Record<string, SampleInputSource>;
 
 export interface RuleVersion {
   id: string;
@@ -48,6 +51,7 @@ export interface RuleVersion {
   fields: RuleField[];
   rules: BusinessRule[];
   sampleInputs: SampleInput;
+  sampleInputSources?: SampleInputSources;
 }
 
 export interface RuleProject {
@@ -56,6 +60,7 @@ export interface RuleProject {
   fields: RuleField[];
   rules: BusinessRule[];
   sampleInputs: SampleInput;
+  sampleInputSources: SampleInputSources;
   versions: RuleVersion[];
   frozenVersionId?: string;
   updatedAt: number;
@@ -100,6 +105,8 @@ export interface RuleAnalysis {
 export interface SampleEvaluation {
   valid: boolean;
   errors: string[];
+  /** 本次求值时未填写的字段；这些字段不会作为合法输入参与命中判断。 */
+  missingFieldIds: string[];
   matchedRules: BusinessRule[];
   winner?: BusinessRule;
 }

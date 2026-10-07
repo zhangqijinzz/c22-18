@@ -245,6 +245,29 @@ button:disabled { cursor: not-allowed !important; opacity: .5; }
 .no-match-state strong { color: #6d7b75; font-size: 10px; }
 .no-match-state p { margin: 5px 0 0; font-size: 8px; }
 
+.sample-status-row { display: flex; flex-wrap: wrap; gap: 8px; margin: -6px 0 13px; }
+.sample-status-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 9px; border: 1px solid #e4ebe7; border-radius: 5px; background: #fff; color: #7d8d87; font-size: 8px; }
+.sample-status-chip i { width: 6px; height: 6px; border-radius: 50%; background: #b6c4bd; }
+.sample-status-chip.status-missing { border-color: #efdfc7; background: #fffaf2; color: #9b7a4d; }
+.sample-status-chip.status-missing i { background: #d6a44c; }
+.sample-status-chip.status-auto { border-color: #d9e4ee; background: #f6f9fc; color: #5f7690; }
+.sample-status-chip.status-auto i { background: #7b98b8; }
+.sample-field.is-unfilled input, .sample-field.is-unfilled select { border-color: #efdfc7; background: #fffdf9; color: #b6a280; }
+.sample-field.is-unfilled > span { color: #a98a5c; }
+.sample-field.is-auto input, .sample-field.is-auto select { border-color: #cfddeb; background: #f7fafd; }
+.sample-field.is-auto > span { color: #5f7690; }
+.state-warn { background: #fff6e7; color: #a77f42; }
+.state-warn i { background: #cf9a4f; }
+.sample-pending { display: flex; align-items: center; flex-direction: column; padding: 26px 14px; color: #8a9892; text-align: center; }
+.sample-pending > div { width: 34px; height: 34px; display: grid; place-items: center; margin-bottom: 8px; border-radius: 50%; background: #f1f5f3; color: #8aa096; font-size: 16px; }
+.sample-pending strong { color: #6d7b75; font-size: 10px; }
+.sample-pending p { max-width: 320px; margin: 5px 0 0; font-size: 8px; line-height: 1.7; }
+.sample-missing-banner { margin: 12px 0; padding: 11px 12px; border: 1px solid #efdfc7; border-radius: 7px; background: #fffaf2; color: #9b7a4d; }
+.sample-missing-banner strong { display: block; color: #8f6c3f; font-size: 9px; }
+.sample-missing-banner ul { margin: 7px 0 4px; padding: 0; list-style: none; }
+.sample-missing-banner li { margin-top: 4px; font-size: 8px; }
+.sample-missing-banner .text-button { margin-top: 4px; padding-left: 0; }
+
 .validation-banner, .error-banner, .truncated-banner { display: flex; align-items: center; gap: 9px; margin: 0 0 11px; padding: 9px 11px; border: 1px solid #efdfc7; border-radius: 6px; background: #fffaf2; color: #9b7a4d; font-size: 9px; }
 .validation-banner strong { color: #8f6c3f; font-size: 9px; }
 .validation-banner span { flex: 1; }

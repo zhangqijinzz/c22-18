@@ -1,5 +1,5 @@
 import type { BusinessRule, RuleField, RuleProject, RuleVersion, WorkspaceDocument } from '../models/ruleModel';
-import { defaultSample } from '../domain/conditionEvaluator';
+import { sanitizeSampleInputs } from '../domain/sampleInputs';
 import { ProjectStorageService } from '../services/projectStorageService';
 
 export class RuleRepository {
@@ -35,17 +35,26 @@ function decodeProject(value: unknown): RuleProject | null {
   const versionsValue = Array.isArray(value.versions) ? value.versions : [];
   const versions = versionsValue.filter(isRuleVersion);
   if (versions.length !== versionsValue.length) return null;
+  // 恢复旧数据时只做清洗（多余键删除、类型/选项不合法的值归为未填写），绝不补默认值。
+  const { sampleInputs, sources } = sanitizeSampleInputs(value.sampleInputs, fields);
   const project: RuleProject = {
     id: value.id,
     title: value.title,
     fields,
     rules,
-    sampleInputs: isRecord(value.sampleInputs) ? value.sampleInputs as RuleProject['sampleInputs'] : defaultSample(fields),
-    versions,
+    sampleInputs,
+    sampleInputSources: sources,
+    versions: versions.map((version) => decodeVersionSamples(version)),
     updatedAt: value.updatedAt,
   };
   if (typeof value.frozenVersionId === 'string') project.frozenVersionId = value.frozenVersionId;
   return project;
+}
+
+/** 版本快照同样按其自身字段集合清洗样例输入；缺失来源统一视为当时的用户填写。 */
+function decodeVersionSamples(version: RuleVersion): RuleVersion {
+  const { sampleInputs, sources } = sanitizeSampleInputs(version.sampleInputs, version.fields);
+  return { ...version, sampleInputs, sampleInputSources: sources };
 }
 
 function isRuleField(value: unknown): value is RuleField {
